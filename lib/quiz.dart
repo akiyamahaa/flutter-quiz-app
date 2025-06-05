@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quizz_app/data/questions.dart';
 import 'package:quizz_app/questions_screen.dart';
+import 'package:quizz_app/results_screen.dart';
 import 'package:quizz_app/splash_screen.dart';
 
 class Quiz extends StatefulWidget {
@@ -12,18 +13,26 @@ class Quiz extends StatefulWidget {
 
 class _QuizState extends State<Quiz> {
   List<String> selectedAnswer = [];
-  Widget? activeScreen;
+  String? activeScreen;
 
   // Call after the widget is inserted into the widget tree
   @override
   void initState() {
-    activeScreen = SplashScreen(startQuiz: switchScreen);
+    activeScreen = 'active-screen';
     super.initState();
   }
 
   void switchScreen() {
     setState(() {
-      activeScreen = QuestionsScreen(onSelectAnswer: chooseAnswer);
+      selectedAnswer = [];
+      activeScreen = 'question-screen';
+    });
+  }
+
+  void backtoStart() {
+    setState(() {
+      selectedAnswer = [];
+      activeScreen = 'active-screen';
     });
   }
 
@@ -32,20 +41,29 @@ class _QuizState extends State<Quiz> {
     // You can add logic to handle the answer selection here
     if (selectedAnswer.length == questions.length) {
       setState(() {
-        selectedAnswer = [];
-        activeScreen = SplashScreen(startQuiz: switchScreen);
+        activeScreen = 'results-screen';
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print(selectedAnswer);
+    Widget screenWidget = SplashScreen(startQuiz: switchScreen);
+
+    if (activeScreen == 'question-screen') {
+      screenWidget = QuestionsScreen(onSelectAnswer: chooseAnswer);
+    } else if (activeScreen == 'results-screen') {
+      screenWidget = ResultsScreen(
+        selectedAnswers: selectedAnswer,
+        onRestart: switchScreen,
+        onExit: backtoStart,
+      );
+    }
 
     return MaterialApp(
       title: ' Quiz App',
       home: Scaffold(
-        body: Container(color: Colors.purple, child: activeScreen),
+        body: Container(color: Colors.purple, child: screenWidget),
       ),
     );
   }
